@@ -17,6 +17,13 @@ export interface CourseStat {
   bar: number;
 }
 
+export interface PreviousSchoolStat {
+  name: string;
+  count: number;
+  /** 0–100, scaled against the most common previous school. */
+  bar: number;
+}
+
 export interface Stats {
   totalPeople: number;
   totalOpenDays: number;
@@ -26,6 +33,7 @@ export interface Stats {
   unregistered: number;
   openDays: OpenDayStat[];
   courses: CourseStat[];
+  previousSchools: PreviousSchoolStat[];
 }
 
 export interface StatsInput {
@@ -37,6 +45,25 @@ export interface StatsInput {
 
 function scale(count: number, max: number): number {
   return max === 0 ? 0 : Math.round((count / max) * 100);
+}
+
+function groupPreviousSchools(people: Pick<Person, 'previousSchool'>[]): Map<string, { name: string; count: number }> {
+  const names = new Map<string, string>();
+  const counts = new Map<string, number>();
+  for (const person of people) {
+    const name = person.previousSchool.trim().replace(/\s+/g, ' ');
+    if (name) {
+      const key = name.toLocaleLowerCase('en');
+      if (!names.has(key)) names.set(key, name);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+  }
+  return new Map([...names].map(([key, name]) => [key, { name, count: counts.get(key) ?? 0 }]));
+}
+
+/** Distinct saved school names for autocomplete, matched case-insensitively. */
+export function distinctPreviousSchools(people: Pick<Person, 'previousSchool'>[]): string[] {
+  return [...groupPreviousSchools(people).values()].map(({ name }) => name).sort((a, b) => a.localeCompare(b));
 }
 
 /**
@@ -71,6 +98,8 @@ export function buildStats({ people, openDays, courses, participations }: StatsI
   }
   const courseCounts = courses.map((course) => ({ id: course.id, name: course.name, count: perCourse.get(course.id) ?? 0 }));
   const topCourse = Math.max(0, ...courseCounts.map((course) => course.count));
+  const schoolCounts = [...groupPreviousSchools(people).values()];
+  const mostCommonSchool = Math.max(0, ...schoolCounts.map((school) => school.count));
 
   return {
     totalPeople: people.length,
@@ -82,6 +111,9 @@ export function buildStats({ people, openDays, courses, participations }: StatsI
     // Busiest first, which is the order that helps when choosing where to staff.
     courses: courseCounts
       .map((course) => ({ ...course, bar: scale(course.count, topCourse) }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)),
+    previousSchools: schoolCounts
+      .map((school) => ({ ...school, bar: scale(school.count, mostCommonSchool) }))
       .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)),
   };
 }

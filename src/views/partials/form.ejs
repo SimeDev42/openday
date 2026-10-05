@@ -6,6 +6,7 @@
         The field's value is escaped separately below. %>
     <% const error = errors[field.name] %>
     <% const invalid = error ? ` aria-invalid="true" aria-describedby="${field.name}-error"` : '' %>
+    <% const suggestsPreviousSchools = field.name === 'previousSchool' %>
     <div class="field<%= field.full ? ' field-full' : '' %>">
       <% if (field.type === 'checks') { %>
         <%# A group of checkboxes has no single control to point a label at, so
@@ -99,9 +100,16 @@
           name="<%= field.name %>"
           value="<%= values[field.name] %>"
           autocomplete="off"
+          <%- suggestsPreviousSchools ? 'list="previous-schools"' : '' %>
           <%- extraAttributes(field) %>
           <%- field.required ? 'required' : '' %><%- invalid %>
         />
+        <% if (suggestsPreviousSchools) { %>
+          <datalist id="previous-schools">
+            <% optionsContext.previousSchools.forEach((school) => { %><option value="<%= school %>"></option><% }) %>
+          </datalist>
+          <p class="field-hint"><%= t(optionsContext.previousSchools.length > 0 ? 'Suggestions use previously entered school names.' : 'Saved school names will appear here as suggestions.') %></p>
+        <% } %>
       <% } %>
 
       <% if (error) { %>

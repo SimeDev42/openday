@@ -18,6 +18,7 @@ export interface OptionContext {
   people: OptionRecord[];
   openDays: OptionRecord[];
   schoolCourses: OptionRecord[];
+  previousSchools: string[];
 }
 
 export interface Field {

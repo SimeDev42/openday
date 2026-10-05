@@ -25,7 +25,7 @@ import {
   updatePeople,
 } from './db.js';
 import { formatClock, formatDay, openDayLabel, personLabel } from './format.js';
-import { buildStats, type Stats } from './stats.js';
+import { buildStats, distinctPreviousSchools, type Stats } from './stats.js';
 import { resolveLocale, translate } from './i18n.js';
 import {
   applyImport,
@@ -390,6 +390,7 @@ async function loadPage(locale: 'en' | 'it' = 'en'): Promise<PageData> {
       schoolCourses: [...courses]
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((course) => ({ id: course.id, label: course.name })),
+      previousSchools: distinctPreviousSchools(people),
     },
     // The earliest open day running today, so the add-person form can preselect
     // it. Null when nothing is on today, leaving the choice to the operator.

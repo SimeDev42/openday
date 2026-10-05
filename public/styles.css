@@ -213,6 +213,7 @@ main {
 .empty, .stats-note, .picker-status, .suggester-hint { color: var(--muted); }
 .stats-note { margin-top: .75rem; font-size: .875rem; }
 .field-error { color: var(--danger); font-size: .8125rem; }
+.field-hint { margin: 0; color: var(--muted); font-size: .8rem; }
 .error { padding: .7rem .85rem; color: var(--danger); background: var(--danger-soft); border-radius: var(--radius-sm); }
 
 .empty-state, .table-card > .empty, [data-table-nomatch] {
@@ -491,7 +492,7 @@ th.col-age, td.col-age { text-align: right; }
 .tile dd { margin: .25rem 0 0; font-size: 2rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
 .tile-flag { border-color: var(--warn-line); background: var(--warn-soft); }
 @media (min-width: 36rem) { .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } .tile:last-child:nth-child(odd) { grid-column: auto; } }
-@media (min-width: 56rem) { .tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+@media (min-width: 56rem) { .tiles { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 
 /* Label and number sit on one line, the bar underneath: nothing is truncated,
    which matters because the date in an open day's name is the whole point. */
@@ -581,3 +582,5 @@ th.col-age, td.col-age { text-align: right; }
 
 /* Keep primary anchor actions legible despite the browser's default link color. */
 .button:not(.button-secondary):not(.button-quiet):not(.button-danger) { color: #fff; }
+
+#panel-people .col-name { font-weight: 400; }

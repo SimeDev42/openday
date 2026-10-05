@@ -81,3 +81,23 @@
     </p>
   <% } %>
 </div>
+
+<div class="card">
+  <h2><%= t('Students by previous school') %></h2>
+  <% if (stats.previousSchools.length === 0) { %>
+    <p class="empty"><%= t('No previous school names on file yet.') %></p>
+  <% } else { %>
+    <ul class="bars">
+      <% stats.previousSchools.forEach((school) => { %>
+        <li class="bar-row">
+          <span class="bar-label"><%= school.name %></span>
+          <span class="bar-track">
+            <span class="bar-fill" style="width: <%= school.bar %>%"></span>
+          </span>
+          <span class="bar-value"><%= school.count %></span>
+        </li>
+      <% }) %>
+    </ul>
+    <p class="stats-note"><%= t('Students counted per saved previous school name.') %></p>
+  <% } %>
+</div>
