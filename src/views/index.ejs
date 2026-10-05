@@ -22,30 +22,32 @@
         <p class="notice" role="status" aria-live="polite"><%= t(notice) %></p>
       <% } %>
 
-      <nav class="tabs" aria-label="<%= t('Main navigation') %>">
+      <div class="tabs" role="tablist" aria-label="<%= t('Main navigation') %>">
         <% sections.forEach((section) => { %>
           <button
             type="button"
-            class="tab"
+            class="tab<%= section.tab === tab ? ' is-active' : '' %>"
             role="tab"
+            tabindex="<%= section.tab === tab ? '0' : '-1' %>"
             id="tab-<%= section.tab %>"
             aria-controls="panel-<%= section.tab %>"
             aria-selected="<%= section.tab === tab ? 'true' : 'false' %>"
             data-tab="<%= section.tab %>"
           ><%= t(section.label) %></button>
         <% }) %>
-      </nav>
+      </div>
 
       <% entityTabs.forEach((entity) => { %>
         <section
-          class="panel"
+          class="panel panel-entity"
           role="tabpanel"
           id="panel-<%= entity.tab %>"
           aria-labelledby="tab-<%= entity.tab %>"
           <%= entity.tab === tab ? '' : 'hidden' %>
         >
-          <div class="card">
-            <h2><%= t(editing[entity.tab] ? `Edit ${entity.label.toLowerCase().replace(/s$/, '')}` : `Add ${entity.label.toLowerCase().replace(/s$/, '')}`) %></h2>
+          <% const noun = entity.tab === 'people' ? 'person' : entity.label.toLowerCase().replace(/s$/, '') %>
+          <div class="card<%= editing[entity.tab] ? ' is-editing' : '' %>">
+            <h2><%= t(editing[entity.tab] ? `Edit ${noun}` : `Add ${noun}`) %></h2>
 
             <%- include('partials/form', {
               fields: entity.fields,

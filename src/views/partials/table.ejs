@@ -2,7 +2,7 @@
     the full lists. Search and paging hide rows in place instead, which keeps
     both of those working and avoids a round trip per keystroke. %>
 <% if (rows.length === 0) { %>
-  <p class="empty"><%= emptyText %></p>
+  <p class="empty empty-state"><%= emptyText %></p>
 <% } else { %>
   <% if (search) { %>
     <div class="table-toolbar">
@@ -18,13 +18,13 @@
   <% } %>
 
   <div class="table-scroll" data-table-scroll>
-    <table class="data-table" data-table>
+    <table class="data-table" data-table role="table">
       <thead>
-        <tr>
+        <tr role="row">
           <% columns.forEach((column) => { %>
-            <th scope="col"<% if (column.className) { %> class="<%= column.className %>"<% } %>><%= column.label %></th>
+            <th scope="col" role="columnheader"<% if (column.className) { %> class="<%= column.className %>"<% } %>><%= column.label %></th>
           <% }) %>
-          <th scope="col" class="col-actions"><span class="visually-hidden"><%= t('Actions') %></span></th>
+          <th scope="col" role="columnheader" class="col-actions"><span class="visually-hidden"><%= t('Actions') %></span></th>
         </tr>
       </thead>
       <tbody>
@@ -35,26 +35,27 @@
             ? search.keys.map((key) => String(row[key] ?? '')).join(' ').toLowerCase()
             : '' %>
           <tr
+            role="row"
             data-row
             data-search="<%= searchText %>"
             <%- row.id === editingId ? ' class="is-editing"' : '' %>
           >
             <% columns.forEach((column) => { %>
-              <td<% if (column.className) { %> class="<%= column.className %>"<% } %>><%= column.format ? column.format(row[column.key]) : row[column.key] %></td>
+              <td role="cell" data-label="<%= column.label %>"<% if (column.className) { %> class="<%= column.className %>"<% } %>><%= column.format ? column.format(row[column.key]) : row[column.key] %></td>
             <% }) %>
-            <td class="cell-actions">
+            <td role="cell" class="cell-actions"><div class="cell-actions-inner">
               <a class="button button-quiet" href="/?tab=<%= tab %>&edit=<%= encodeURIComponent(row.id) %>#<%= tab %>"><%= t('Edit') %></a>
               <form method="post" action="<%= path %>/<%= encodeURIComponent(row.id) %>/delete">
                 <button type="submit" class="button button-danger" data-confirm="<%= locale === 'it' ? `Rimuovere ${confirmLabel(row)}?` : `Remove ${confirmLabel(row)}?` %>"><%= t('Remove') %></button>
               </form>
-            </td>
+            </div></td>
           </tr>
         <% }) %>
       </tbody>
     </table>
   </div>
 
-  <p class="empty" data-table-nomatch hidden></p>
+  <p class="empty empty-state" data-table-nomatch hidden></p>
 
   <%# Starts hidden: the script reveals it only when there is more than one
       page, so a short list never shows dead controls. %>

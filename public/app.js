@@ -21,6 +21,7 @@
     for (const tab of tabs) {
       const active = tab.dataset.tab === target;
       tab.setAttribute('aria-selected', String(active));
+      tab.tabIndex = active ? 0 : -1;
       tab.classList.toggle('is-active', active);
 
       const panel = document.getElementById('panel-' + tab.dataset.tab);
