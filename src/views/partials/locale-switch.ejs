@@ -1,0 +1,5 @@
+<form class="locale-switch" method="post" action="/locale" data-locale-form aria-label="<%= t('Language') %>">
+  <input type="hidden" name="returnTo" value="/" data-locale-return />
+  <button type="submit" name="locale" value="en" lang="en" aria-pressed="<%= locale === 'en' %>">EN</button>
+  <button type="submit" name="locale" value="it" lang="it" aria-pressed="<%= locale === 'it' %>">IT</button>
+</form>

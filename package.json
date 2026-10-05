@@ -1,0 +1,26 @@
+{
+  "name": "openday",
+  "version": "0.1.0",
+  "description": "Open day visitor log",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsx watch --env-file=.env src/server.ts",
+    "start": "tsx --env-file=.env src/server.ts",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "ejs": "^3.1.5",
+    "express": "^5.2.1",
+    "firebase-admin": "^14.5.0",
+    "tsx": "^4.23.15"
+  },
+  "devDependencies": {
+    "@types/ejs": "^3.1.5",
+    "@types/express": "^5.0.6",
+    "typescript": "^7.0.2"
+  }
+}

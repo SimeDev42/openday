@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="<%= locale %>">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><%= t(title) %> · <%= t('Open day') %></title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="error-page">
+      <header class="landing-topbar">
+        <a class="brand" href="/"><span>openday</span></a>
+        <%- include('partials/locale-switch') %>
+      </header>
+      <section class="error-content" aria-labelledby="error-title">
+        <p class="eyebrow"><%= status %></p>
+        <h1 id="error-title"><%= t(title) %></h1>
+        <p><%= t(message) %></p>
+        <a class="button" href="/"><%= t('Back to the register') %></a>
+      </section>
+    </main>
+  </body>
+</html>

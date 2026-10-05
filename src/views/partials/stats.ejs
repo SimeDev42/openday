@@ -1,0 +1,83 @@
+<%# Counted from the records the page already loaded, so the numbers always
+    agree with the tables on the other tabs. %>
+<div class="card">
+  <h2><%= t('At a glance') %></h2>
+  <dl class="tiles">
+    <div class="tile">
+      <dt><%= t('People') %></dt>
+      <dd><%= stats.totalPeople %></dd>
+    </div>
+    <div class="tile">
+      <dt><%= t('Registrations') %></dt>
+      <dd><%= stats.totalParticipations %></dd>
+    </div>
+    <div class="tile<%= stats.unregistered > 0 ? ' tile-flag' : '' %>">
+      <dt><%= t('Not signed up yet') %></dt>
+      <dd><%= stats.unregistered %></dd>
+    </div>
+    <div class="tile">
+      <dt><%= t('Open days') %></dt>
+      <dd><%= stats.totalOpenDays %></dd>
+    </div>
+    <div class="tile">
+      <dt><%= t('School courses') %></dt>
+      <dd><%= stats.totalCourses %></dd>
+    </div>
+  </dl>
+  <p class="stats-note">
+    <% if (stats.unregistered === 0 && stats.totalPeople > 0) { %>
+      <%= t('Everyone on file has signed up for at least one open day.') %>
+    <% } else if (stats.unregistered === stats.totalPeople && stats.totalPeople > 0) { %>
+      <%= t('Nobody has signed up for an open day yet.') %>
+    <% } else { %>
+      <%= stats.unregistered %><%= t(' of ') %><%= stats.totalPeople %> <%= t(' people have not signed up for any open day.') %>
+    <% } %>
+  </p>
+</div>
+
+<div class="card">
+  <h2><%= t('Registrations per open day') %></h2>
+  <% if (stats.openDays.length === 0) { %>
+    <p class="empty"><%= t('No open days yet, so there is nothing to count. Add one on the Open days tab.') %></p>
+  <% } else { %>
+    <%# Bars are scaled against the busiest day, so the busiest is a full
+        width and an empty day is visibly empty. %>
+    <ul class="bars">
+      <% stats.openDays.forEach((day) => { %>
+        <li class="bar-row">
+          <span class="bar-label"><%= day.label %></span>
+          <span class="bar-track">
+            <span class="bar-fill" style="width: <%= day.bar %>%"></span>
+          </span>
+          <span class="bar-value"><%= day.count %></span>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</div>
+
+<div class="card">
+  <h2><%= t('Course interest') %></h2>
+  <% if (stats.courses.length === 0) { %>
+    <p class="empty"><%= t('No school courses yet. Add one on the School courses tab and people’s preferences will show up here.') %></p>
+  <% } else { %>
+    <ul class="bars">
+      <% stats.courses.forEach((course) => { %>
+        <li class="bar-row">
+          <span class="bar-label"><%= course.name %></span>
+          <span class="bar-track">
+            <span class="bar-fill" style="width: <%= course.bar %>%"></span>
+          </span>
+          <span class="bar-value"><%= course.count %></span>
+        </li>
+      <% }) %>
+    </ul>
+    <p class="stats-note">
+      <% if (stats.totalPeople === 0) { %>
+        <%= t('Nobody is on file yet, so there is no interest to measure.') %>
+      <% } else { %>
+        <%= t('Counted over') %> <%= stats.totalPeople %> <%= t(stats.totalPeople === 1 ? 'person' : 'people') %> <%= t(' on file. The busiest first.') %>
+      <% } %>
+    </p>
+  <% } %>
+</div>

@@ -1,0 +1,30 @@
+<div class="card">
+  <h2><%= t('Allow an account') %></h2>
+  <p><%= t('Only listed Gmail accounts can sign in and access the visitor register.') %></p>
+  <% if (notice) { %><p class="notice" role="status"><%= t(notice) %></p><% } %>
+  <% if (error) { %><p class="field-error" role="alert"><%= t(error) %></p><% } %>
+  <form method="post" action="/team" class="entity-form">
+    <div class="field field-full">
+      <label for="team-email"><%= t('Gmail address') %></label>
+      <input id="team-email" name="email" type="email" autocomplete="email" placeholder="name@gmail.com" value="<%= emailValue %>" required />
+    </div>
+    <div class="form-actions"><button class="button" type="submit"><%= t('Allow account') %></button></div>
+  </form>
+</div>
+<div class="card">
+  <h2><%= t('Allowed accounts') %></h2>
+  <ul class="access-list">
+    <% if (adminEmail) { %>
+      <li><span><strong><%= adminEmail %></strong><small><%= t('Admin · configured on server') %></small></span><span class="suggestion-state"><%= t('Admin') %></span></li>
+    <% } %>
+    <% emails.forEach((entry) => { %>
+      <li>
+        <span><strong><%= entry.email %></strong><small><%= t('Can use the visitor register') %></small></span>
+        <form method="post" action="/team/<%= encodeURIComponent(entry.email) %>/delete">
+          <button class="button button-danger" type="submit" data-confirm="<%= locale === 'it' ? `Revocare l’accesso a ${entry.email}? Al prossimo accesso la sessione verrà chiusa.` : `Remove access for ${entry.email}? Their next request will be signed out.` %>"><%= t('Remove access') %></button>
+        </form>
+      </li>
+    <% }) %>
+    <% if (!adminEmail && emails.length === 0) { %><li class="empty"><%= t('No accounts have access.') %></li><% } %>
+  </ul>
+</div>

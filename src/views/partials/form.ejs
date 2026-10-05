@@ -1,0 +1,119 @@
+<form class="entity-form" method="post" action="<%= action %>">
+  <%# createOnly fields steer the save, so they make no sense on an edit form. %>
+  <% const shownFields = editingId ? fields.filter((field) => !field.createOnly) : fields %>
+  <% shownFields.forEach((field) => { %>
+    <%# Built from static markup, not user input, so it is safe to emit raw.
+        The field's value is escaped separately below. %>
+    <% const error = errors[field.name] %>
+    <% const invalid = error ? ` aria-invalid="true" aria-describedby="${field.name}-error"` : '' %>
+    <div class="field<%= field.full ? ' field-full' : '' %>">
+      <% if (field.type === 'checks') { %>
+        <%# A group of checkboxes has no single control to point a label at, so
+            it gets a legend naming the whole set instead. %>
+        <span class="field-legend" id="<%= field.name %>-legend">
+          <%= t(field.label) %><% if (field.required) { %><span class="required" aria-hidden="true">*</span><% } %>
+        </span>
+      <% } else { %>
+        <label for="<%= field.name %><%= field.searchable ? '-search' : '' %>">
+          <%= t(field.label) %><% if (field.required) { %><span class="required" aria-hidden="true">*</span><% } %>
+        </label>
+      <% } %>
+
+      <% if (field.type === 'textarea') { %>
+        <textarea
+          id="<%= field.name %>"
+          name="<%= field.name %>"
+          rows="3"
+          autocomplete="off"
+          <%- extraAttributes(field) %>
+          <%- field.required ? 'required' : '' %><%- invalid %>
+        ><%= values[field.name] %></textarea>
+      <% } else if (field.type === 'checks') { %>
+        <%# One name repeated per ticked box, which the parser hands back as an
+            array. The server revalidates every id against the real courses. %>
+        <% const checkOptions = field.options ? field.options(optionsContext) : [] %>
+        <% const ticked = new Set(Array.isArray(values[field.name]) ? values[field.name] : []) %>
+        <% if (checkOptions.length === 0) { %>
+          <p class="picker-status"><%= t('No school courses yet. Add one on the School courses tab first.') %></p>
+        <% } else { %>
+          <div class="checks" role="group" aria-labelledby="<%= field.name %>-legend"<%- invalid %>>
+            <% checkOptions.forEach((option) => { %>
+              <label class="check">
+                <input type="checkbox" name="<%= field.name %>" value="<%= option.value %>"<%- ticked.has(option.value) ? ' checked' : '' %> />
+                <span><%= option.label %></span>
+              </label>
+            <% }) %>
+          </div>
+        <% } %>
+      <% } else if (field.type === 'select' && field.searchable) { %>
+        <% const options = field.options ? field.options(optionsContext) : [] %>
+        <% const selected = values[field.name] %>
+        <% const selectedOption = options.find((option) => option.value === selected) %>
+        <%# The chosen id travels in a hidden field, which the server revalidates
+            against the real ids, so a tampered value cannot slip through. %>
+        <input type="hidden" name="<%= field.name %>" value="<%= selected %>" data-picker-input="<%= field.name %>" />
+        <p class="picker-chip" role="status" data-picker-chip<%- selectedOption ? '' : ' hidden' %>>
+          <span data-picker-label><%= selectedOption ? selectedOption.label : '' %></span>
+          <button type="button" class="button-link" data-picker-clear><%= t('Change') %></button>
+        </p>
+        <div data-picker-searchwrap<%- selectedOption ? ' hidden' : '' %>>
+          <input
+            type="search"
+            id="<%= field.name %>-search"
+            data-picker-search="<%= field.name %>"
+            placeholder="<%= t(field.placeholder ?? 'Search…') %>"
+            autocomplete="off"
+            <%- invalid %>
+          />
+          <p class="picker-status" id="<%= field.name %>-status" data-picker-status role="status"></p>
+          <ul class="picker-results" data-picker-list hidden>
+            <% options.forEach((option) => { %>
+              <li data-picker-option data-label="<%= option.label.toLowerCase() %>">
+                <button type="button" data-picker-value="<%= option.value %>"><%= option.label %></button>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+      <% } else if (field.type === 'select') { %>
+        <% const options = field.options ? field.options(optionsContext) : [] %>
+        <% const selected = values[field.name] %>
+        <% const missing = selected !== '' && !options.some((option) => option.value === selected) %>
+        <select
+          id="<%= field.name %>"
+          name="<%= field.name %>"
+          <%- field.required ? 'required' : '' %><%- invalid %>
+        >
+          <option value=""><%= t(field.placeholder ?? 'Choose…') %></option>
+          <% if (missing) { %>
+            <%# Kept visible so saving cannot silently swap the stored value. %>
+            <option value="<%= selected %>" selected>(<%= t('unavailable') %>)</option>
+          <% } %>
+          <% options.forEach((option) => { %>
+            <option value="<%= option.value %>"<%- option.value === selected ? ' selected' : '' %>><%= option.label %></option>
+          <% }) %>
+        </select>
+      <% } else { %>
+        <input
+          type="<%= field.type %>"
+          id="<%= field.name %>"
+          name="<%= field.name %>"
+          value="<%= values[field.name] %>"
+          autocomplete="off"
+          <%- extraAttributes(field) %>
+          <%- field.required ? 'required' : '' %><%- invalid %>
+        />
+      <% } %>
+
+      <% if (error) { %>
+        <p class="field-error" id="<%= field.name %>-error"><%= t(error) %></p>
+      <% } %>
+    </div>
+  <% }) %>
+
+  <div class="form-actions">
+    <button type="submit"><%= submitLabel %></button>
+    <% if (editingId) { %>
+      <a class="button-link" href="/#<%= tab %>"><%= t('Cancel') %></a>
+    <% } %>
+  </div>
+</form>

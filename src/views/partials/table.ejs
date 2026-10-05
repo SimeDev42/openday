@@ -1,0 +1,66 @@
+<%# Every row is rendered, because the picker and the duplicate suggester need
+    the full lists. Search and paging hide rows in place instead, which keeps
+    both of those working and avoids a round trip per keystroke. %>
+<% if (rows.length === 0) { %>
+  <p class="empty"><%= emptyText %></p>
+<% } else { %>
+  <% if (search) { %>
+    <div class="table-toolbar">
+      <label class="visually-hidden" for="search-<%= tab %>"><%= t('Search') %> <%= label.toLowerCase() %></label>
+      <input
+        type="search"
+        id="search-<%= tab %>"
+        data-table-search
+        placeholder="<%= t(search.placeholder) %>"
+        autocomplete="off"
+      />
+    </div>
+  <% } %>
+
+  <div class="table-scroll" data-table-scroll>
+    <table class="data-table" data-table>
+      <thead>
+        <tr>
+          <% columns.forEach((column) => { %>
+            <th scope="col"<% if (column.className) { %> class="<%= column.className %>"<% } %>><%= column.label %></th>
+          <% }) %>
+          <th scope="col" class="col-actions"><span class="visually-hidden"><%= t('Actions') %></span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% rows.forEach((row) => { %>
+          <%# The search text is the row's own values, lowercased and escaped,
+              so filtering never has to read the table back out of the DOM. %>
+          <% const searchText = search
+            ? search.keys.map((key) => String(row[key] ?? '')).join(' ').toLowerCase()
+            : '' %>
+          <tr
+            data-row
+            data-search="<%= searchText %>"
+            <%- row.id === editingId ? ' class="is-editing"' : '' %>
+          >
+            <% columns.forEach((column) => { %>
+              <td<% if (column.className) { %> class="<%= column.className %>"<% } %>><%= column.format ? column.format(row[column.key]) : row[column.key] %></td>
+            <% }) %>
+            <td class="cell-actions">
+              <a class="button button-quiet" href="/?tab=<%= tab %>&edit=<%= encodeURIComponent(row.id) %>#<%= tab %>"><%= t('Edit') %></a>
+              <form method="post" action="<%= path %>/<%= encodeURIComponent(row.id) %>/delete">
+                <button type="submit" class="button button-danger" data-confirm="<%= locale === 'it' ? `Rimuovere ${confirmLabel(row)}?` : `Remove ${confirmLabel(row)}?` %>"><%= t('Remove') %></button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="empty" data-table-nomatch hidden></p>
+
+  <%# Starts hidden: the script reveals it only when there is more than one
+      page, so a short list never shows dead controls. %>
+  <div class="pager" data-pager hidden>
+    <button type="button" class="button button-quiet" data-pager-prev><%= t('Previous') %></button>
+    <p class="pager-status" data-pager-status role="status"></p>
+    <button type="button" class="button button-quiet" data-pager-next><%= t('Next') %></button>
+  </div>
+<% } %>

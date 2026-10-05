@@ -1,0 +1,151 @@
+<%# The report of the import that just ran, shown once and then dropped by the
+    route that rendered it. %>
+<% if (transfer.report) { %>
+  <div class="card">
+    <h2><%= t('Import finished') %></h2>
+    <table class="data-table plan-table">
+      <caption class="visually-hidden"><%= t('What the import did') %></caption>
+      <thead>
+        <tr>
+          <th scope="col"><%= t('Collection') %></th>
+          <th scope="col"><%= t('In the file') %></th>
+          <th scope="col"><%= t('Added') %></th>
+          <th scope="col"><%= t('Already here') %></th>
+          <th scope="col"><%= t('Skipped') %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% Object.keys(transfer.report.rows).forEach((key) => { %>
+          <% const row = transfer.report.rows[key] %>
+          <tr>
+            <th scope="row"><%= t(collectionLabels[key]) %></th>
+            <td><%= row.total %></td>
+            <td><%= row.created %></td>
+            <td><%= row.reused %></td>
+            <td><%= row.skipped %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th scope="row"><%= t('Total') %></th>
+          <td><%= transfer.report.totals.created + transfer.report.totals.reused + transfer.report.totals.skipped %></td>
+          <td><%= transfer.report.totals.created %></td>
+          <td><%= transfer.report.totals.reused %></td>
+          <td><%= transfer.report.totals.skipped %></td>
+        </tr>
+      </tfoot>
+    </table>
+    <% if (transfer.report.warnings.length > 0) { %>
+      <ul class="warnings">
+        <% transfer.report.warnings.forEach((warning) => { %>
+          <li><%= t(warning) %></li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </div>
+<% } %>
+
+<% if (transfer.preview) { %>
+  <div class="card">
+    <h2><%= t('What this import would do') %></h2>
+    <p class="stats-note">
+      <%= t('Nothing has been written yet. Records already in this database are matched by name, so they are reused rather than duplicated, and importing the same file twice changes nothing the second time.') %>
+    </p>
+    <table class="data-table plan-table">
+      <caption class="visually-hidden"><%= t('What this import would do') %></caption>
+      <thead>
+        <tr>
+          <th scope="col"><%= t('Collection') %></th>
+          <th scope="col"><%= t('In the file') %></th>
+          <th scope="col"><%= t('Would add') %></th>
+          <th scope="col"><%= t('Would reuse') %></th>
+          <th scope="col"><%= t('Would skip') %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% Object.keys(transfer.preview.summary.rows).forEach((key) => { %>
+          <% const row = transfer.preview.summary.rows[key] %>
+          <tr>
+            <th scope="row"><%= t(collectionLabels[key]) %></th>
+            <td><%= row.total %></td>
+            <td><%= row.created %></td>
+            <td><%= row.reused %></td>
+            <td><%= row.skipped %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th scope="row"><%= t('Total') %></th>
+          <td><%= transfer.preview.summary.totals.created + transfer.preview.summary.totals.reused + transfer.preview.summary.totals.skipped %></td>
+          <td><%= transfer.preview.summary.totals.created %></td>
+          <td><%= transfer.preview.summary.totals.reused %></td>
+          <td><%= transfer.preview.summary.totals.skipped %></td>
+        </tr>
+      </tfoot>
+    </table>
+    <% if (transfer.preview.summary.warnings.length > 0) { %>
+      <ul class="warnings">
+        <% transfer.preview.summary.warnings.forEach((warning) => { %>
+          <li><%= t(warning) %></li>
+        <% }) %>
+      </ul>
+    <% } %>
+    <% if (transfer.preview.summary.totals.skipped > 0) { %>
+      <p class="field-error"><%= t('Some participations will be skipped, because they name a person or an open day that is in neither this database nor the file.') %></p>
+    <% } %>
+    <form method="post" action="/import/confirm" class="form-actions">
+      <input type="hidden" name="token" value="<%= transfer.preview.token %>" />
+      <button type="submit" class="button button-danger" data-confirm="<%= t('Import this file? It adds ') %><%= transfer.preview.summary.totals.created %><%= t(' new records. Anything already here is matched by name and reused, never duplicated.') %>"><%= t('Import it') %></button>
+      <a class="button-link" href="/?tab=data#data"><%= t('Cancel') %></a>
+    </form>
+  </div>
+<% } %>
+
+<div class="card">
+  <h2><%= t('Export') %></h2>
+  <p class="stats-note">
+    <%= t('Downloads everything as one JSON file. Records reference each other by name rather than by id, so the file can be imported into a different database.') %>
+  </p>
+  <p class="form-actions">
+    <a class="button" href="/export" download><%= t('Download export') %></a>
+  </p>
+  <% if (!hasRecords) { %>
+    <p class="empty"><%= t('There is nothing to export yet.') %></p>
+  <% } %>
+</div>
+
+<div class="card">
+  <h2><%= t('Import') %></h2>
+  <% if (transfer.error) { %>
+    <p class="field-error" role="alert"><%= t(transfer.error) %></p>
+    <% if (transfer.problems.length > 0) { %>
+      <ul class="warnings">
+        <% transfer.problems.forEach((problem) => { %>
+          <li><%= t(problem) %></li>
+        <% }) %>
+      </ul>
+    <% } %>
+  <% } %>
+  <p class="stats-note">
+    <%= t('Paste an export, or drop the file onto the box. Nothing is written until you have seen the plan and confirmed it.') %>
+  </p>
+  <form method="post" action="/import/preview" class="entity-form">
+    <div class="field field-full">
+      <label for="import-payload"><%= t('Export file') %></label>
+      <textarea
+        id="import-payload"
+        name="payload"
+        rows="8"
+        spellcheck="false"
+        autocomplete="off"
+        placeholder='{ "format": "openday-export", ... }'
+        data-import-dropzone
+      ><%= transfer.pasted %></textarea>
+    </div>
+    <div class="form-actions">
+      <button type="submit"><%= t('Check the file') %></button>
+    </div>
+  </form>
+</div>

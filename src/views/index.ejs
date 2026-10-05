@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="<%= locale %>">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><%= t('Open day') %></title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <main data-initial-tab="<%= tab %>" data-locale="<%= locale %>">
+      <div class="page-heading">
+        <h1><%= t('Open day') %></h1>
+        <div class="account-menu">
+          <% if (user?.name || user?.email) { %><span><%= user.name || user.email %></span><% } %>
+          <%- include('partials/locale-switch') %>
+          <form method="post" action="/session/logout"><button class="button button-secondary" type="submit"><%= t('Sign out') %></button></form>
+        </div>
+      </div>
+
+      <% if (notice) { %>
+        <p class="notice" role="status" aria-live="polite"><%= t(notice) %></p>
+      <% } %>
+
+      <nav class="tabs" aria-label="<%= t('Main navigation') %>">
+        <% sections.forEach((section) => { %>
+          <button
+            type="button"
+            class="tab"
+            role="tab"
+            id="tab-<%= section.tab %>"
+            aria-controls="panel-<%= section.tab %>"
+            aria-selected="<%= section.tab === tab ? 'true' : 'false' %>"
+            data-tab="<%= section.tab %>"
+          ><%= t(section.label) %></button>
+        <% }) %>
+      </nav>
+
+      <% entityTabs.forEach((entity) => { %>
+        <section
+          class="panel"
+          role="tabpanel"
+          id="panel-<%= entity.tab %>"
+          aria-labelledby="tab-<%= entity.tab %>"
+          <%= entity.tab === tab ? '' : 'hidden' %>
+        >
+          <div class="card">
+            <h2><%= t(editing[entity.tab] ? `Edit ${entity.label.toLowerCase().replace(/s$/, '')}` : `Add ${entity.label.toLowerCase().replace(/s$/, '')}`) %></h2>
+
+            <%- include('partials/form', {
+              fields: entity.fields,
+              values: values[entity.tab],
+              errors: errors[entity.tab],
+              optionsContext,
+              action: editing[entity.tab] ? `${entity.path}/${encodeURIComponent(editing[entity.tab])}` : entity.path,
+              submitLabel: t(editing[entity.tab] ? 'Save changes' : 'Add'),
+              editingId: editing[entity.tab],
+              tab: entity.tab,
+            }) %>
+          </div>
+
+          <%# Only on the add form: catches a second copy of someone who is
+              already on file, before a duplicate person gets created. %>
+          <% if (entity.tab === 'people' && !editing.people && personHints.length > 0) { %>
+            <div class="card suggester" data-suggester hidden>
+              <h2><%= t('Already registered?') %></h2>
+              <p class="suggester-hint">
+                <% if (defaultOpenDayId) { %>
+                  <%= t('Keep typing to match someone already on file and add them to today’s open day.') %>
+                <% } else { %>
+                  <%= t('Keep typing to check whether someone is already on file. No open day is scheduled for today, so there is nothing to add them to.') %>
+                <% } %>
+              </p>
+              <p class="picker-status" data-suggester-count role="status"></p>
+              <ul class="suggestions">
+                <% personHints.forEach((hint) => { %>
+                  <li
+                    class="suggestion"
+                    data-suggestion
+                    data-name="<%= hint.name.toLowerCase() %>"
+                    data-surname="<%= hint.surname.toLowerCase() %>"
+                    hidden
+                  >
+                    <span class="suggestion-info">
+                      <strong><%= hint.name %> <%= hint.surname %></strong>
+                      <span><%= hint.age %> &middot; <%= hint.previousSchool %></span>
+                    </span>
+                    <% if (hint.registered) { %>
+                      <span class="suggestion-state"><%= t('Already on today’s list') %></span>
+                    <% } else if (defaultOpenDayId) { %>
+                      <form method="post" action="/participations/today">
+                        <input type="hidden" name="personId" value="<%= hint.id %>" />
+                        <button type="submit" class="button"><%= t('Add to today’s open day') %></button>
+                      </form>
+                    <% } %>
+                  </li>
+                <% }) %>
+              </ul>
+            </div>
+          <% } %>
+
+          <div class="card table-card" data-table-card>
+            <%- include('partials/table', {
+              columns: entity.columns.map((column) => ({
+                ...column,
+                label: t(column.label),
+                ...(column.format ? { format: (value) => column.format(value, locale) } : {}),
+              })),
+              rows: rowsByTab[entity.tab],
+              path: entity.path,
+              tab: entity.tab,
+              label: t(entity.label),
+              search: entity.search,
+              editingId: editing[entity.tab],
+              emptyText: t(entity.emptyText),
+              confirmLabel: entity.confirmLabel ?? defaultConfirmLabel,
+            }) %>
+          </div>
+        </section>
+      <% }) %>
+
+      <%# Read-only tabs. No form, nothing to add or remove, so the CRUD
+          partials do not apply to them. %>
+      <section
+        class="panel"
+        role="tabpanel"
+        id="panel-stats"
+        aria-labelledby="tab-stats"
+        <%= tab === 'stats' ? '' : 'hidden' %>
+      >
+        <%- include('partials/stats', { stats }) %>
+      </section>
+
+      <section
+        class="panel"
+        role="tabpanel"
+        id="panel-data"
+        aria-labelledby="tab-data"
+        <%= tab === 'data' ? '' : 'hidden' %>
+      >
+        <%- include('partials/data', {
+          transfer: transfer,
+          collectionLabels,
+          hasRecords: stats.totalPeople + stats.totalOpenDays + stats.totalCourses + stats.totalParticipations > 0,
+        }) %>
+      </section>
+
+      <% if (user?.isAdmin) { %>
+        <section class="panel" role="tabpanel" id="panel-team" aria-labelledby="tab-team" <%= tab === 'team' ? '' : 'hidden' %>>
+          <%- include('partials/team', {
+            emails: teamEmails,
+            adminEmail: teamAdminEmail,
+            error: teamError,
+            notice: teamNotice,
+            emailValue: teamEmailValue,
+          }) %>
+        </section>
+      <% } %>
+    </main>
+  </body>
+</html>
